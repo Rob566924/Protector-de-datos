@@ -1,0 +1,390 @@
+<!-- ============================================================
+  RETO: Detective de Fugas de Información
+  Insignia: Protector de Datos
+  Guardianes Digitales de la Justicia
+============================================================ -->
+
+<style>
+#reto-fugas{
+--navy:#0f2a6b;
+--blue:#2563eb;
+--gold:#f59e0b;
+--sky:#38bdf8;
+--ok:#16a34a;
+--mid:#f59e0b;
+--bad:#dc2626;
+--bg:#eef5ff;
+font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+max-width:760px;
+margin:auto;
+background:white;
+border-radius:20px;
+overflow:hidden;
+border:3px solid var(--navy);
+box-shadow:0 10px 30px rgba(0,0,0,.2);
+}
+
+#reto-fugas *{box-sizing:border-box}
+
+#reto-fugas .hd{
+padding:15px 20px;
+background:linear-gradient(90deg,var(--navy),var(--blue));
+color:white;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+#reto-fugas .bd{
+padding:20px;
+}
+
+#reto-fugas .pill{
+background:rgba(255,255,255,.2);
+padding:5px 12px;
+border-radius:50px;
+font-weight:bold;
+}
+
+#reto-fugas .bar{
+height:14px;
+background:#d9e8ff;
+border-radius:30px;
+overflow:hidden;
+margin-bottom:15px;
+}
+
+#reto-fugas .bar i{
+display:block;
+height:100%;
+width:100%;
+background:linear-gradient(90deg,#22c55e,#84cc16);
+}
+
+#reto-fugas .case{
+background:#f8fbff;
+border:2px solid #c8dbff;
+border-radius:15px;
+padding:18px;
+margin-bottom:15px;
+min-height:140px;
+}
+
+#reto-fugas .actions{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:10px;
+}
+
+#reto-fugas button{
+cursor:pointer;
+border:none;
+padding:15px;
+font-weight:bold;
+border-radius:12px;
+transition:.2s;
+}
+
+#reto-fugas button:hover{
+transform:translateY(-2px);
+}
+
+#reto-fugas .bajo{
+background:#dcfce7;
+}
+
+#reto-fugas .medio{
+background:#fef3c7;
+}
+
+#reto-fugas .alto{
+background:#fee2e2;
+}
+
+#reto-fugas .feedback{
+margin-top:12px;
+padding:12px;
+border-radius:10px;
+display:none;
+}
+
+#reto-fugas .ok{
+background:#e7f8ed;
+border:2px solid #16a34a;
+display:block;
+}
+
+#reto-fugas .ko{
+background:#fdeaea;
+border:2px solid #dc2626;
+display:block;
+}
+
+#reto-fugas .hide{
+display:none;
+}
+
+#reto-fugas .final{
+text-align:center;
+}
+
+#reto-fugas .medal{
+font-size:80px;
+}
+
+#reto-fugas .score{
+font-size:30px;
+font-weight:900;
+color:#2563eb;
+}
+
+@media(max-width:600px){
+#reto-fugas .actions{
+grid-template-columns:1fr;
+}
+}
+</style>
+
+<div id="reto-fugas">
+
+<div class="hd">
+<div>
+<b>🛡️ Detective de Fugas de Información</b><br>
+<small>Protector de Datos</small>
+</div>
+
+<div>
+<span class="pill">⭐ <span id="rf-puntos">0</span></span>
+</div>
+</div>
+
+<div class="bd" id="rf-game">
+
+<p>
+Una posible filtración de información ha sido detectada.
+Analiza cada situación y determina el nivel de riesgo.
+</p>
+
+<div style="margin-top:10px;">
+<b>Progreso</b>
+<div class="bar">
+<i id="rf-progress"></i>
+</div>
+</div>
+
+<div style="margin-top:10px;">
+<b>🛡️ Escudo:</b>
+<span id="rf-shield">100%</span>
+</div>
+
+<div class="case">
+<h3 id="rf-title"></h3>
+<p id="rf-text"></p>
+</div>
+
+<div class="actions">
+
+<button class="bajo" data-risk="bajo">
+✅ Riesgo Bajo
+</button>
+
+<button class="medio" data-risk="medio">
+⚠️ Riesgo Medio
+</button>
+
+<button class="alto" data-risk="alto">
+🚨 Riesgo Alto
+</button>
+
+</div>
+
+<div id="rf-feedback" class="feedback"></div>
+
+</div>
+
+<div id="rf-end" class="bd final hide">
+
+<div class="medal" id="rf-medal">🛡️</div>
+
+<h2 id="rf-rank"></h2>
+
+<div class="score">
+<span id="rf-finalpts"></span> puntos
+</div>
+
+<p id="rf-message"></p>
+
+<button onclick="location.reload()">
+🔄 Reintentar
+</button>
+
+</div>
+
+</div>
+
+<script>
+(function(){
+
+const casos=[
+
+{
+t:"Contraseña en Post-it",
+d:"Un servidor público tiene su contraseña pegada en el monitor.",
+r:"alto"
+},
+
+{
+t:"Correo institucional",
+d:"Un expediente fue enviado únicamente mediante correo institucional autorizado.",
+r:"bajo"
+},
+
+{
+t:"USB desconocida",
+d:"Se encontró una memoria USB externa conectada a un equipo judicial.",
+r:"alto"
+},
+
+{
+t:"Expediente cifrado",
+d:"Los documentos almacenados utilizan cifrado y accesos restringidos.",
+r:"bajo"
+},
+
+{
+t:"Carpeta compartida",
+d:"Una carpeta con expedientes puede ser consultada por personal no relacionado con el caso.",
+r:"medio"
+},
+
+{
+t:"Pantalla desbloqueada",
+d:"Una sesión institucional quedó abierta durante el horario de comida.",
+r:"alto"
+}
+
+];
+
+let i=0;
+let puntos=0;
+let shield=100;
+let aciertos=0;
+
+const title=document.getElementById("rf-title");
+const text=document.getElementById("rf-text");
+const prog=document.getElementById("rf-progress");
+
+function render(){
+
+title.textContent=casos[i].t;
+text.textContent=casos[i].d;
+
+prog.style.width=((i/casos.length)*100)+"%";
+
+}
+
+render();
+
+document.querySelectorAll("#reto-fugas button[data-risk]").forEach(btn=>{
+
+btn.onclick=()=>{
+
+const elegido=btn.dataset.risk;
+
+const correcto=casos[i].r===elegido;
+
+const fb=document.getElementById("rf-feedback");
+
+if(correcto){
+
+puntos+=100;
+aciertos++;
+
+fb.className="feedback ok";
+
+fb.innerHTML=
+"<b>✅ Correcto.</b> Has identificado adecuadamente el nivel de riesgo.";
+
+}else{
+
+shield=Math.max(0,shield-20);
+
+fb.className="feedback ko";
+
+fb.innerHTML=
+"<b>❌ Atención.</b> El riesgo correcto era: <b>"+casos[i].r.toUpperCase()+"</b>";
+
+}
+
+document.getElementById("rf-puntos").textContent=puntos;
+document.getElementById("rf-shield").textContent=shield+"%";
+
+setTimeout(()=>{
+
+fb.className="feedback";
+
+i++;
+
+if(i<casos.length){
+
+render();
+
+}else{
+
+fin();
+
+}
+
+},2200);
+
+};
+
+});
+
+function fin(){
+
+document.getElementById("rf-game").classList.add("hide");
+document.getElementById("rf-end").classList.remove("hide");
+
+let rango="";
+let medal="";
+let mensaje="";
+
+if(aciertos===6){
+
+rango="Protector Maestro de Datos";
+medal="🛡️";
+mensaje="Misión completada con excelencia. Has protegido la información judicial de todas las amenazas detectadas.";
+
+}
+else if(aciertos>=5){
+
+rango="Custodio de la Información";
+medal="⚖️";
+mensaje="Excelente trabajo. La protección de datos está en buenas manos.";
+
+}
+else if(aciertos>=3){
+
+rango="Auxiliar de Seguridad Digital";
+medal="📂";
+mensaje="Buen desempeño. Continúa fortaleciendo tus habilidades.";
+
+}
+else{
+
+rango="Recluta Digital";
+medal="🔰";
+mensaje="Debes continuar tu entrenamiento para convertirte en Protector de Datos.";
+
+}
+
+document.getElementById("rf-medal").textContent=medal;
+document.getElementById("rf-rank").textContent=rango;
+document.getElementById("rf-finalpts").textContent=puntos;
+document.getElementById("rf-message").textContent=mensaje;
+
+}
+
+})();
+</script>
